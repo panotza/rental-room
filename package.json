@@ -1,0 +1,23 @@
+{
+  "name": "rental-room",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/panotza/rental-room.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/panotza/rental-room/issues"
+  },
+  "homepage": "https://github.com/panotza/rental-room#readme",
+  "dependencies": {
+    "vite": "^0.16.10"
+  }
+}

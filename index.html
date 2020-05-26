@@ -1,0 +1,106 @@
+<!doctype html>
+<head>
+    <link type="text/css" rel="stylesheet" href="https://cdn.firebase.com/libs/firebaseui/3.5.2/firebaseui.css" />
+</head>
+<div x-data="app()" x-init="init()">
+    <div x-show="isAuth">
+        <template x-for="it in list" :key="it.id">
+            <div>
+                <span x-text="it.id"></span><br>
+                receivedRentalFeeAt: <span x-text="it.receivedRentalFeeAt"></span><br>
+                paidMaintenanceFeeAt: <span x-text="it.paidMaintenanceFeeAt"></span><br>
+                <input type="date" x-model="rentalDatePicker[it.id]">
+                <button @click="setReceivedRentalFeeAt(it.id)">set received</button>
+                <input type="date" x-model="maintenanceDatePicker[it.id]">
+                <button @click="maintenanceDatePicker(it.id)">set paid</button>
+            </div>
+        </template>
+    </div>
+    <div x-show="!isAuth">
+        <div id="firebaseui-auth-container"></div>
+        <div id="loader">Loading...</div>
+    </div>
+</div>
+<script src="https://www.gstatic.com/firebasejs/7.14.5/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.14.5/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.14.5/firebase-firestore.js"></script>
+<script src="https://cdn.firebase.com/libs/firebaseui/3.5.2/firebaseui.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.3.5/dist/alpine.min.js"></script>
+<script>
+    let appState
+    let payment
+
+    function app () {
+        return {
+            isAuth: false,
+            list: [],
+            rentalDatePicker: {},
+            maintenanceDatePicker: {},
+            init () {
+                appState = this
+            },
+            setReceivedRentalFeeAt (id) {
+                if (!payment) {
+                    return
+                }
+                payment.doc(id).update({ receivedRentalFeeAt: this.rentalDatePicker[id] }).catch((err) => console.log(err))
+            },
+            setpaidMaintenanceFeeAt (date) {
+                if (!payment) {
+                    return
+                }
+                payment.doc(id).update({ paidMaintenanceFeeAt: this.maintenanceDatePicker[id] }).catch((err) => console.log(err))
+            }
+        }
+    }
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyA-7ihpAgOJOVAzkVP675m0IWyqOd7aAE0",
+        authDomain: "rental-room-7747c.firebaseapp.com",
+        databaseURL: "https://rental-room-7747c.firebaseio.com",
+        projectId: "rental-room-7747c",
+        storageBucket: "rental-room-7747c.appspot.com",
+        messagingSenderId: "370835751566",
+        appId: "1:370835751566:web:197e333e6724f39abbbfdf"
+    }
+    firebase.initializeApp(firebaseConfig)
+
+    new Promise((resolve, reject) => {
+        firebase.auth().onAuthStateChanged((user) => {
+            if (user) {
+                resolve(user)
+            } else {
+                reject(new Error('unauthorized'))
+            }
+        })
+    }).then((user) => {
+        appState.isAuth = true
+        return firebase.firestore().collection('users').doc(user.uid).collection('payments')
+    }).then((ref) => {
+        payment = ref
+        ref.onSnapshot(({ docs }) => {
+            appState.list = docs.map((doc) => {
+                return {
+                    id: doc.id,
+                    ...doc.data()
+                }
+            })
+        })
+    }).catch((err) => {
+        const ui = new firebaseui.auth.AuthUI(firebase.auth())
+        ui.start('#firebaseui-auth-container', {
+            signInOptions: [
+                firebase.auth.EmailAuthProvider.PROVIDER_ID
+            ],
+            callbacks: {
+                signInSuccessWithAuthResult: function(authResult, redirectUrl) {
+                    return false
+                },
+                uiShown: function() {
+                    document.getElementById('loader').style.display = 'none'
+                }
+            }
+        })
+    })
+
+</script>
